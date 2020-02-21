@@ -77,24 +77,8 @@ def readGFF( gffFileStr ):
 			foundPrimary = False
 			isPrimary = None
 			geneDict[chrm] += [(start, end, strand)]
-		# mrna
-		elif feat == 'mRNA':
-			# longest in notes -> one of them is labeled primary
-			if 'longest=1' in notes:
-				isPrimary = True
-				foundPrimary = True
-			elif 'longest=0' in notes:
-				isPrimary = False
-			# longest not labeled -> if isPrimary, unset and found primary	
-			elif isPrimary:
-				isPrimary = False
-			# haven't found primary yet, this is primary
-			elif foundPrimary == False:
-				isPrimary = True
-				foundPrimary = True
-			# otherwise, we have primary already so keep going to the next gene
 		# cds
-		elif feat == 'CDS' and isPrimary:
+		elif feat == 'CDS':
 			cdsDict[chrm] += [(start, end)]
 	# end for line
 	gffFile.close()
@@ -109,18 +93,21 @@ def processSample( geneDict, cdsDict, allcPath, sampleName, numBins, numBinsStre
 	chrmList = list(geneDict.keys())
 	
 	for chrm in chrmList:
-		if isPrint:
-			print('Processing {:s}: {:s}'.format( sampleName, chrm ) )
-		allcFileStr = os.path.normpath('{:s}/allc_{:s}_{:s}.tsv'.format(allcPath, sampleName, chrm) )
-		allcDict = readAllc( allcFileStr, cdsDict[chrm], methTypes )
+		# make sure the chrm have the corresponding allc coverage file
+		fileExists = os.path.exists('{:s}/allc_{:s}_{:s}.tsv'.format(allcPath, sampleName, chrm))
+		if fileExists == True:
+			if isPrint:
+				print('Processing {:s}: {:s}'.format( sampleName, chrm ) )
+			allcFileStr = os.path.normpath('{:s}/allc_{:s}_{:s}.tsv'.format(allcPath, sampleName, chrm) )
+			allcDict = readAllc( allcFileStr, cdsDict[chrm], methTypes )
 		
-		tmpAr = processChrm(geneDict[chrm], allcDict, numBins, numBinsStream, streamSize, methTypes)
-		## add values to existing array
-		outAr = addToArrayMeth( outAr, tmpAr, methTypes )
-	# end for chrm
+			tmpAr = processChrm(geneDict[chrm], allcDict, numBins, numBinsStream, streamSize, methTypes)
+			## add values to existing array
+			outAr = addToArrayMeth( outAr, tmpAr, methTypes )
+		# end for chrm
 	
-	#print( 'Processing {:s}...'.format( fileStr ) )
-	#outMat = processAllC( gffDict, allCDict, numBins, numBinsStream, streamSize )
+		#print( 'Processing {:s}...'.format( fileStr ) )
+		#outMat = processAllC( gffDict, allCDict, numBins, numBinsStream, streamSize )
 	return outAr
 
 def readAllc( allcFileStr, cdsAr, methTypes ):
