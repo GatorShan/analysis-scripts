@@ -130,7 +130,8 @@ def readAllc( allcFileStr, cdsAr, methTypes ):
 		lineAr = line.rstrip().split('\t')
 		# (0) chr (1) pos (2) strand (3) mc class (4) mc_count (5) total
 		# (6) methylated
-		if len(lineAr) < 7 or lineAr[6].isdigit() == False:
+		# in my case, lineAr[6] is NA
+		if len(lineAr) < 7:
 			continue
 		pos = int( lineAr[1] )
 		
